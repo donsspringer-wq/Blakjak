@@ -29,6 +29,8 @@ import type {
 // Re-export the poker Table DO and Scoreboard DO so Wrangler finds them.
 export { Table } from "./poker/table";
 export { Scoreboard } from "./scoreboard";
+import { BLACKJACK_PAGE } from "./blackjack/page";
+import { POKER_PAGE } from "./poker/page";
 
 // ─── Environment bindings ───────────────────────────────────────
 export interface Env {
@@ -125,6 +127,18 @@ export default {
     if (url.pathname === "/api/scores" || url.pathname.startsWith("/api/scores/")) {
       const id = env.SCOREBOARD.idFromName("main");
       return env.SCOREBOARD.get(id).fetch(request);
+    }
+
+    // ── Game pages (served directly by the Worker) ──
+    if (url.pathname === "/blackjack" || url.pathname === "/blackjack/") {
+      return new Response(BLACKJACK_PAGE, {
+        headers: { "content-type": "text/html; charset=utf-8" },
+      });
+    }
+    if (url.pathname === "/poker" || url.pathname === "/poker/") {
+      return new Response(POKER_PAGE, {
+        headers: { "content-type": "text/html; charset=utf-8" },
+      });
     }
 
     // ── Everything else → static assets (SPA) ──
