@@ -1,0 +1,37 @@
+# .github/workflows/deploy.yml
+# Push to main → build → deploy to Cloudflare Workers (zero CLI on desktop)
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # manual trigger from GitHub Actions tab
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend (Vite → ./dist)
+        run: npm run build
+
+      - name: Deploy Worker + assets + Durable Objects
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # Runs `wrangler deploy` which:
+          #   1. Bundles src/worker.ts (esbuild)
+          #   2. Uploads ./dist as static assets
+          #   3. Applies the v2 migration (creates BlackjackRoom SQLite namespace)
+          #   4. Deploys the Worker with both DO bindings

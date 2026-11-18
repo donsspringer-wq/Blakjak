@@ -1,0 +1,53 @@
+{
+  // ── Worker identity ───────────────────────────────────────────
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "peggys-poker",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-11-01",
+
+  // ── Static assets (Vite build output) ────────────────────────
+  // Everything NOT in run_worker_first is served from ./dist
+  // without invoking the Worker.  SPA fallback for client-side routing.
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/ws", "/api/*"]
+  },
+
+  // ── Durable Objects ───────────────────────────────────────────
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "TABLES",
+        "class_name": "Table"
+      },
+      {
+        "name": "BLACKJACK_ROOMS",
+        "class_name": "BlackjackRoom"
+      },
+      {
+        "name": "SCOREBOARD",
+        "class_name": "Scoreboard"
+      }
+    ]
+  },
+
+  // ── Migrations ────────────────────────────────────────────────
+  // v1 created the poker Table (already deployed).
+  // v2 adds the BlackjackRoom — both use SQLite-backed storage.
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["Table"]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": ["BlackjackRoom"]
+    },
+    {
+      "tag": "v3",
+      "new_sqlite_classes": ["Scoreboard"]
+    }
+  ]
+}
